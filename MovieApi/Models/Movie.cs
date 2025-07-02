@@ -8,7 +8,8 @@
         public string Genre { get; set; }        // Genre (normaliseras ev. senare)
         public int Duration { get; set; }        // Längd i minuter
 
-        public ICollection<Actor> Actors { get; set; } = new List<Actor>();// Lista över skådespelare i filmen
-
+        public MovieDetails MovieDetails { get; set; } // Navigering till MovieDetails (1:1-relation)
+        public ICollection<MovieActor> MovieActors { get; set; } = new List<MovieActor>();
+        public ICollection<Review> Reviews { get; set; }  // Navigering till Reviews (1:M-relation)
     }
 }

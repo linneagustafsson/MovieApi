@@ -1,8 +1,13 @@
-﻿namespace MovieApi.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace MovieApi.Models
 {
     public class MovieDetails
     {
-        public int Id { get; set; }
+        [Key, ForeignKey("Movie")]
+        public int Id { get; set; } // Primärnyckel,OCH foreign key till Movie.Id
+
         public string Synopsis { get; set; }
         public string Language { get; set; }
         public int Budget { get; set; }
