@@ -8,7 +8,7 @@
 
         public int BirthYear { get; set; }
 
-        // N:M till filmer via MovieActors
-       
+        // N:M till filmer 
+        public ICollection<Movie> Movies { get; set; } = new List<Movie>();
     }
 }
