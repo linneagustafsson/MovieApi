@@ -61,7 +61,7 @@ namespace MovieApi.Controllers
 
             return Ok(movie);
         }
-        // GET: api/movies/id
+        // GET: api/movies/id/details
         [HttpGet("{id}/details")]
         public async Task<ActionResult<MovieDetailsDto>> GetMovieDetails(int id)
         {
@@ -163,6 +163,40 @@ namespace MovieApi.Controllers
             };
 
             return CreatedAtAction(nameof(GetMovie), new { id = movie.Id }, movieDto);
+        }
+
+        [HttpPost("{movieId}/actors/{actorId}")]
+        public async Task<IActionResult> AddActorToMovie(int movieId, int actorId, MovieActorCreateDto dto)
+        {
+            var movie = await _context.Movies
+                .Include(m => m.Actors) // om du behöver ladda relaterade aktörer
+                .FirstOrDefaultAsync(m => m.Id == movieId);
+
+            if (movie == null)
+                return NotFound($"Movie with id {movieId} not found.");
+
+            var actor = await _context.Actors.FindAsync(actorId);
+            if (actor == null)
+                return NotFound($"Actor with id {actorId} not found.");
+
+            // Kontrollera om kopplingen redan finns
+            var exists = await _context.MovieActors
+                .AnyAsync(ma => ma.MovieId == movieId && ma.ActorId == actorId);
+            if (exists)
+                return BadRequest("Actor is already linked to this movie.");
+
+            // Skapa koppling med roll
+            var movieActor = new MovieActor
+            {
+                MovieId = movieId,
+                ActorId = actorId,
+                Role = dto.Role
+            };
+
+            _context.MovieActors.Add(movieActor);
+            await _context.SaveChangesAsync();
+
+            return NoContent(); // Eller Created om du vill returnera något
         }
 
         // DELETE: api/Movies/5

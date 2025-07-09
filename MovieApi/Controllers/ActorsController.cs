@@ -50,13 +50,34 @@ namespace MovieApi.Controllers
         }
         // POST: api/actors
         [HttpPost]
-        public async Task<ActionResult<Actor>> PostActor(ActorDto dto)
+        public async Task<ActionResult<ActorDto>> PostActor(ActorCreateDto dto)
         {
             var actor = new Actor { Name = dto.Name, BirthYear = dto.BirthYear };
             _context.Actors.Add(actor);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetActor), new { id = actor.Id }, actor);
+            var resultDto = new ActorDto
+            {
+                Id = actor.Id,
+                Name = actor.Name,
+                BirthYear = actor.BirthYear
+            };
+
+            return CreatedAtAction(nameof(GetActor), new { id = actor.Id }, resultDto);
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutActor(int id, ActorUpdateDto dto)
+        {
+            var actor = await _context.Actors.FindAsync(id);
+            if (actor == null)
+                return NotFound();
+
+            actor.Name = dto.Name;
+            actor.BirthYear = dto.BirthYear;
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
     }
 }

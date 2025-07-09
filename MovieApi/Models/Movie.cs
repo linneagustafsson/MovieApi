@@ -10,7 +10,8 @@
        
         public ICollection<Actor> Actors { get; set; } = new List<Actor>();
         public MovieDetails MovieDetails { get; set; } // Navigering till MovieDetails (1:1-relation)
-      
+
+        public ICollection<MovieActor> MovieActors { get; set; }
         public ICollection<Review> Reviews { get; set; }  // Navigering till Reviews (1:M-relation)
     }
 }
