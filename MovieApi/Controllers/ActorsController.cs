@@ -64,7 +64,46 @@ namespace MovieApi.Controllers
             };
 
             return CreatedAtAction(nameof(GetActor), new { id = actor.Id }, resultDto);
+
         }
+        [HttpPost("{movieId}/actors/{actorId}")]
+        public async Task<IActionResult> AddActorToMovie(int movieId, int actorId, [FromBody] MovieActorCreateDto dto)
+        {
+            var movie = await _context.Movies.FindAsync(movieId);
+            if (movie == null) return NotFound($"Movie with id {movieId} not found.");
+
+            var actor = await _context.Actors.FindAsync(actorId);
+            if (actor == null) return NotFound($"Actor with id {actorId} not found.");
+
+            // Kontrollera om kopplingen redan finns
+            var existing = await _context.MovieActors
+                .FirstOrDefaultAsync(ma => ma.MovieId == movieId && ma.ActorId == actorId);
+
+            if (existing != null)
+            {
+                return BadRequest("This actor is already assigned to the movie.");
+            }
+
+            var movieActor = new MovieActor
+            {
+                MovieId = movieId,
+                ActorId = actorId,
+                Role = dto.Role
+            };
+
+            _context.MovieActors.Add(movieActor);
+            await _context.SaveChangesAsync();
+
+            var movieActorDto = new MovieActorDto
+            {
+                MovieId = movieActor.MovieId,
+                ActorId = movieActor.ActorId,
+                Role = movieActor.Role
+            };
+
+            return CreatedAtAction(nameof(GetMovieDetails), new { id = movieId }, movieActorDto);
+        }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutActor(int id, ActorUpdateDto dto)
         {

@@ -61,15 +61,15 @@ namespace MovieApi.Controllers
 
             return Ok(movie);
         }
-        // GET: api/movies/id/details
         [HttpGet("{id}/details")]
         public async Task<ActionResult<MovieDetailsDto>> GetMovieDetails(int id)
         {
             var movie = await _context.Movies
-        .Include(m => m.MovieDetails)
-        .Include(m => m.Actors)
-        .Include(m => m.Reviews)
-        .FirstOrDefaultAsync(m => m.Id == id);
+                .Include(m => m.MovieDetails)
+                .Include(m => m.MovieActors)
+                    .ThenInclude(ma => ma.Actor)
+                .Include(m => m.Reviews)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (movie == null)
             {
@@ -86,11 +86,11 @@ namespace MovieApi.Controllers
                 Synopsis = movie.MovieDetails?.Synopsis,
                 Language = movie.MovieDetails?.Language,
                 Budget = movie.MovieDetails?.Budget ?? 0,
-                Actors = movie.Actors.Select(a => new ActorDto
+                Actors = movie.MovieActors.Select(ma => new ActorDto
                 {
-                    Id = a.Id,
-                    Name = a.Name,
-                    BirthYear = a.BirthYear
+                    Id = ma.Actor.Id,
+                    Name = ma.Actor.Name,
+                    BirthYear = ma.Actor.BirthYear
                 }).ToList(),
                 Reviews = movie.Reviews.Select(r => new ReviewDto
                 {
@@ -102,11 +102,10 @@ namespace MovieApi.Controllers
             };
 
             return Ok(movieDetailDto);
-        }
 
-        // PUT: api/Movies/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+            // PUT: api/Movies/5
+            // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+            [HttpPut("{id}")]
         public async Task<IActionResult> PutMovie(int id, MovieUpdateDto movieUpdateDto)
         {
             if(!MovieExists(id))

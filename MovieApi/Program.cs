@@ -15,6 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
 app.EnsureSeedData();
 
 
@@ -22,6 +23,7 @@ app.EnsureSeedData();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    
 }
 
 app.UseHttpsRedirection();
