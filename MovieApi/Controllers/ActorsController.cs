@@ -4,6 +4,7 @@ using MovieApi.Data;
 using MovieApi.DTOs;
 using MovieApi.Models;
 
+
 namespace MovieApi.Controllers
 {
 
@@ -101,7 +102,8 @@ namespace MovieApi.Controllers
                 Role = movieActor.Role
             };
 
-            return CreatedAtAction(nameof(GetMovieDetails), new { id = movieId }, movieActorDto);
+            return CreatedAtRoute("GetMovieDetails", new { id = movieId }, movieActorDto);
+
         }
 
         [HttpPut("{id}")]

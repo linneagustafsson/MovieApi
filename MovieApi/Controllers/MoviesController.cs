@@ -61,7 +61,7 @@ namespace MovieApi.Controllers
 
             return Ok(movie);
         }
-        [HttpGet("{id}/details")]
+        [HttpGet("{id}/details", Name = "GetMovieDetails")]
         public async Task<ActionResult<MovieDetailsDto>> GetMovieDetails(int id)
         {
             var movie = await _context.Movies
@@ -102,117 +102,118 @@ namespace MovieApi.Controllers
             };
 
             return Ok(movieDetailDto);
-
+        }
             // PUT: api/Movies/5
             // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
             [HttpPut("{id}")]
-        public async Task<IActionResult> PutMovie(int id, MovieUpdateDto movieUpdateDto)
-        {
-            if(!MovieExists(id))
-                return NotFound();
-            var movie = await _context.Movies.FindAsync(id);
-            if (movie == null)
-                return NotFound();
-
-            movie.Title = movieUpdateDto.Title;
-            movie.Year = movieUpdateDto.Year;
-            movie.Genre = movieUpdateDto.Genre;
-            movie.Duration = movieUpdateDto.Duration;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
+            public async Task<IActionResult> PutMovie(int id, MovieUpdateDto movieUpdateDto)
             {
                 if (!MovieExists(id))
                     return NotFound();
-                else
-                    throw;
+                var movie = await _context.Movies.FindAsync(id);
+                if (movie == null)
+                    return NotFound();
+
+                movie.Title = movieUpdateDto.Title;
+                movie.Year = movieUpdateDto.Year;
+                movie.Genre = movieUpdateDto.Genre;
+                movie.Duration = movieUpdateDto.Duration;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!MovieExists(id))
+                        return NotFound();
+                    else
+                        throw;
+                }
+
+                return NoContent();
             }
 
-            return NoContent();
-        }
+            // POST: api/Movies
 
-        // POST: api/Movies
-
-        [HttpPost]
-        public async Task<ActionResult<Movie>> PostMovie(MovieCreateDto movieCreateDto)
-        {
-
-            var movie = new Movie
+            [HttpPost]
+            public async Task<ActionResult<Movie>> PostMovie(MovieCreateDto movieCreateDto)
             {
-                Title = movieCreateDto.Title,
-                Year = movieCreateDto.Year,
-                Genre = movieCreateDto.Genre,
-                Duration = movieCreateDto.Duration
 
-            };
+                var movie = new Movie
+                {
+                    Title = movieCreateDto.Title,
+                    Year = movieCreateDto.Year,
+                    Genre = movieCreateDto.Genre,
+                    Duration = movieCreateDto.Duration
 
-            _context.Movies.Add(movie);
-            await _context.SaveChangesAsync();
+                };
 
-            var movieDto = new MovieDto
-            {
-                Id = movie.Id,
-                Title = movie.Title,
-                Year = movie.Year,
-                Genre = movie.Genre,
-                Duration = movie.Duration
-            };
+                _context.Movies.Add(movie);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetMovie), new { id = movie.Id }, movieDto);
-        }
+                var movieDto = new MovieDto
+                {
+                    Id = movie.Id,
+                    Title = movie.Title,
+                    Year = movie.Year,
+                    Genre = movie.Genre,
+                    Duration = movie.Duration
+                };
 
-        [HttpPost("{movieId}/actors/{actorId}")]
-        public async Task<IActionResult> AddActorToMovie(int movieId, int actorId, MovieActorCreateDto dto)
-        {
-            var movie = await _context.Movies
-                .Include(m => m.Actors) // om du behöver ladda relaterade aktörer
-                .FirstOrDefaultAsync(m => m.Id == movieId);
-
-            if (movie == null)
-                return NotFound($"Movie with id {movieId} not found.");
-
-            var actor = await _context.Actors.FindAsync(actorId);
-            if (actor == null)
-                return NotFound($"Actor with id {actorId} not found.");
-
-            // Kontrollera om kopplingen redan finns
-            var exists = await _context.MovieActors
-                .AnyAsync(ma => ma.MovieId == movieId && ma.ActorId == actorId);
-            if (exists)
-                return BadRequest("Actor is already linked to this movie.");
-
-            // Skapa koppling med roll
-            var movieActor = new MovieActor
-            {
-                MovieId = movieId,
-                ActorId = actorId,
-                Role = dto.Role
-            };
-
-            _context.MovieActors.Add(movieActor);
-            await _context.SaveChangesAsync();
-
-            return NoContent(); // Eller Created om du vill returnera något
-        }
-
-        // DELETE: api/Movies/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMovie(int id)
-        {
-            var movie = await _context.Movies.FindAsync(id);
-            if (movie == null)
-            {
-                return NotFound();
+                return CreatedAtAction(nameof(GetMovie), new { id = movie.Id }, movieDto);
             }
 
-            _context.Movies.Remove(movie);
-            await _context.SaveChangesAsync();
+            [HttpPost("{movieId}/actors/{actorId}")]
+            public async Task<IActionResult> AddActorToMovie(int movieId, int actorId, MovieActorCreateDto dto)
+            {
+                var movie = await _context.Movies
+                    .Include(m => m.Actors) // om du behöver ladda relaterade aktörer
+                    .FirstOrDefaultAsync(m => m.Id == movieId);
 
-            return NoContent();
-        }
+                if (movie == null)
+                    return NotFound($"Movie with id {movieId} not found.");
+
+                var actor = await _context.Actors.FindAsync(actorId);
+                if (actor == null)
+                    return NotFound($"Actor with id {actorId} not found.");
+
+                // Kontrollera om kopplingen redan finns
+                var exists = await _context.MovieActors
+                    .AnyAsync(ma => ma.MovieId == movieId && ma.ActorId == actorId);
+                if (exists)
+                    return BadRequest("Actor is already linked to this movie.");
+
+                // Skapa koppling med roll
+                var movieActor = new MovieActor
+                {
+                    MovieId = movieId,
+                    ActorId = actorId,
+                    Role = dto.Role
+                };
+
+                _context.MovieActors.Add(movieActor);
+                await _context.SaveChangesAsync();
+
+                return NoContent(); // Eller Created om du vill returnera något
+            }
+
+            // DELETE: api/Movies/5
+            [HttpDelete("{id}")]
+            public async Task<IActionResult> DeleteMovie(int id)
+            {
+                var movie = await _context.Movies.FindAsync(id);
+                if (movie == null)
+                {
+                    return NotFound();
+                }
+
+                _context.Movies.Remove(movie);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
+            }
+        
 
         private bool MovieExists(int id)
         {
